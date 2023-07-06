@@ -1,0 +1,58 @@
+const express = require("express");
+const jwt =  require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+
+const router = express.Router();
+const UserModel = require("../models/Users.js");
+
+router.post("/register", async (req, res) => {
+  console.log("register")
+  const { username, password } = req.body;
+  const user = await UserModel.findOne({ username });
+  if (user) {
+    return res.status(400).json({ message: "Username already exists" });
+  }
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const newUser = new UserModel({ username, password: hashedPassword });
+  await newUser.save();
+  res.json({ message: "User registered successfully" });
+});
+
+router.post("/login", async (req, res) => {
+  console.log("login")
+  const { username, password } = req.body;
+  const user = await UserModel.findOne({ username });
+  if (!user) {
+    return res
+      .status(400)
+      .json({ message: "Username or password is incorrect" });
+  }
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid) {
+    return res
+      .status(400)
+      .json({ message: "Username or password is incorrect" });
+  }
+  const token = jwt.sign({ id: user._id }, "secret");
+  console.log(1)
+  res.json({ token, userID: user._id });
+});
+
+// export { router as userRouter };
+
+const verifyToken = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader) {
+    jwt.verify(authHeader, "secret", (err) => {
+      if (err) {
+        return res.sendStatus(403);
+      }
+      next();
+    });
+  } else {
+    res.sendStatus(401);
+  }
+};
+
+
+module.exports = router 
