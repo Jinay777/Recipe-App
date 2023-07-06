@@ -16,7 +16,7 @@ app.use("/auth", userRouter);
 app.use("/recipes", recipesRouter);
 
 mongoose.connect(
-  "mongodb+srv://siddeshshinde1214:Sandeep1214@recipes.1x12s30.mongodb.net/?retryWrites=true&w=majority",
+  "",
   {
     useNewUrlParser: true,
     useUnifiedTopology: true,
